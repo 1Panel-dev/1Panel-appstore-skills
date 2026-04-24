@@ -1,34 +1,36 @@
 # 1Panel Appstore Skills
 
-`1panel-appstore-skills` 是一个用于创建 1Panel 应用商店本地应用安装包的 Skill。
+[English](./README.md) | [简体中文](./README.zh-CN.md)
 
-它面向已经支持 Docker 化部署的应用，可以根据官方仓库、官方文档、Docker 镜像、`docker-compose.yml`，或已经整理好的中间 spec，生成符合 1Panel 本地应用格式的安装包。
+`1panel-appstore-skills` is a skill for creating 1Panel App Store app installation packages.
 
-## 何时使用
+It is designed for applications that already support Docker-based deployment. It can generate a package that follows the 1Panel App Store app format from official repositories, official documentation, Docker images, `docker-compose.yml`, or a prepared intermediate spec.
 
-适合在以下场景使用：
+## When to Use
 
-- 将一个 Docker 化应用封装为 1Panel 本地应用包。
-- 将官方仓库或官方文档中的 Docker / Docker Compose 安装方式转换为 1Panel 应用包。
-- 将现有 `docker-compose.yml` 整理为 1Panel 应用商店目录结构。
-- 基于已准备好的 app spec 生成 `data.yml`、`docker-compose.yml`、README 和数据目录。
+Suitable for:
 
-不适合在以下场景使用：
+- Packaging a Dockerized application as a 1Panel App Store app.
+- Converting Docker / Docker Compose installation methods from official repositories or official documentation into a 1Panel app package.
+- Organizing an existing `docker-compose.yml` into the 1Panel App Store directory structure.
+- Generating `data.yml`, `docker-compose.yml`, README files, and data directories from a prepared app spec.
 
-- 应用没有可靠的 Docker 化安装方式。
-- 需要凭空设计应用部署架构、镜像、端口、数据目录或环境变量。
-- 需要发布到远程应用商店仓库；本 Skill 只负责生成应用包内容。
+Not suitable for:
 
-## 支持的输入
+- Applications without a reliable Docker-based installation method.
+- Scenarios that require inventing the application deployment architecture, image, ports, data directories, or environment variables.
+- Publishing to a remote app store repository. This skill only generates app package content.
 
-- 应用名称或官方仓库地址。
-- Docker 镜像地址和必要的部署参数。
-- 官方 `docker-compose.yml` / `compose.yml` 文件。
-- 符合 `references/appspec.md` 的中间 JSON spec。
+## Supported Inputs
 
-## 输出内容
+- Application name or official repository URL.
+- Docker image and required deployment parameters.
+- Official `docker-compose.yml` / `compose.yml` file.
+- Intermediate JSON spec that follows `references/appspec.md`.
 
-生成结果是一个 1Panel 本地应用包目录，默认形态为：
+## Output
+
+The generated result is a 1Panel App Store app package directory. The default structure is:
 
 ```text
 apps/<app-key>/
@@ -40,73 +42,73 @@ apps/<app-key>/
     data.yml
     docker-compose.yml
     data/
-    scripts/        # 可选：需要处理持久化目录权限时生成 init.sh
+    scripts/        # Optional: generate init.sh when persistent directory permissions need to be handled
 ```
 
-其中会根据输入和官方来源处理：
+Based on the input and official sources, it handles:
 
-- 应用基础信息、版本、类型、标签、网站、文档和仓库地址。
-- 主服务和依赖服务的镜像、端口、环境变量、数据卷和启动依赖。
-- 1Panel 需要的 `data.yml` 字段、表单项和多语言描述。
-- 中文 README；当官方应用或文档支持英文时生成英文 README。
-- 持久化目录权限初始化脚本；仅在官方来源能证明需要时生成。
+- Basic app information, version, type, tags, website, documentation, and repository URL.
+- Main service and dependent service images, ports, environment variables, data volumes, and startup dependencies.
+- `data.yml` fields, form fields, and multilingual descriptions required by 1Panel.
+- Chinese README; English README when the official application or documentation supports English.
+- Persistent directory permission initialization script, generated only when official sources prove it is required.
 
-## 项目结构
+## Project Layout
 
 ```text
 1panel-appstore-skills/
   README.md
+  README.zh-CN.md
   SKILL.md
-  agents/
   assets/
   references/
   scripts/
 ```
 
-核心文件说明：
+Core files:
 
-- `SKILL.md`：定义 Skill 的触发场景、工作流程和封装规则。
-- `assets/sample-appspec.json`：中间 spec 示例，可用于了解生成流程。
-- `references/appstore-format.md`：1Panel 应用包目录和字段规则。
-- `references/source-policy.md`：应用源码、官方文档和 Docker 安装方式的来源规则。
-- `scripts/generate_app_package.py`：根据中间 spec 生成 1Panel 应用包。
+- `SKILL.md`: defines trigger scenarios, workflow, and packaging rules.
+- `assets/sample-appspec.json`: intermediate spec example, useful for understanding the generation flow.
+- `references/appstore-format.md`: 1Panel app package directory and field rules.
+- `references/source-policy.md`: source rules for application source code, official documentation, and Docker installation methods.
+- `scripts/generate_app_package.py`: generates a 1Panel app package from an intermediate spec.
 
-## 信息来源要求
+## Source Requirements
 
-应用包中的 Docker 安装方式必须来自应用官方仓库或官方文档。
+Docker installation methods in the app package must come from the application’s official repository or official documentation.
 
-如果提供了仓库地址，优先使用该仓库作为主线来源。只有在没有仓库地址时，才去 GitHub、Gitee、GitLab 等主流开源代码仓库中查找，并确认找到的是官方仓库。
+If a repository URL is provided, use that repository as the primary source. Only when no repository URL is provided should mainstream open-source code hosts such as GitHub, Gitee, and GitLab be searched, and the discovered repository must be confirmed as official.
 
-可参考仓库内的 `README`、`docs`、`docker-compose.yml`、`compose.yml`、`Dockerfile`、`.env.example`、部署文档，以及官方文档站点中明确给出的 Docker / Docker Compose 安装说明。涉及容器运行用户、UID/GID、数据目录权限要求时，也需要来自官方 `Dockerfile`、Compose 文件或镜像文档。
+Useful sources include repository `README`, `docs`, `docker-compose.yml`, `compose.yml`, `Dockerfile`, `.env.example`, deployment documentation, and official documentation pages that explicitly provide Docker / Docker Compose installation instructions. Container runtime user, UID/GID, and data directory permission requirements must also come from official `Dockerfile`, Compose files, image documentation, or project documentation.
 
-当官方来源没有 Docker 安装方式时，需要先补充可靠的容器化安装信息，再生成应用包。
+When official sources do not provide a Docker installation method, reliable containerized installation information must be added before generating the app package.
 
-优先使用官方容器镜像。官方没有公开可用镜像，或官方只提供源码构建方式时，可以在用户明确接受后使用第三方镜像，并记录第三方镜像来源。
+Prefer official container images. If no public official image is available, or if the official project only provides source-build instructions, a third-party image can be used only after the user explicitly accepts it, and the third-party image source must be recorded.
 
-如果生成 `init.sh`，脚本内容也需要有官方来源依据。当前最常见用途是处理持久化目录权限；官方文档明确需要其他安装前处理时，也可以写入对应命令。没有初始化动作时，应用包中不包含 `scripts/` 目录。
+If `init.sh` is generated, its content also needs official-source evidence. The most common use is handling persistent directory permissions. If official documentation clearly requires other pre-installation actions, those commands can also be included. When no initialization action is needed, the app package does not include a `scripts/` directory.
 
-## 使用示例
+## Usage Examples
 
 ```text
-帮我把 https://github.com/example/myapp 封装成 1Panel 本地应用。
+Package https://github.com/example/myapp as a 1Panel App Store app.
 ```
 
 ```text
-帮我把 Umami 封装成 1Panel 本地应用。
+Package OpenClaw as a 1Panel App Store app.
 ```
 
 ```text
-帮我把 ghcr.io/example/myapp:1.0.0 封装成 1Panel 本地应用。
-对外端口 8080，容器端口 3000。
+Package ghcr.io/example/myapp:1.0.0 as a 1Panel App Store app.
+Host port 8080, container port 3000.
 ```
 
 ```text
-使用 1panel-appstore-skills，把当前目录的 docker-compose.yml 转成 1Panel 本地应用包。
+Use 1panel-appstore-skills to convert the docker-compose.yml in the current directory into a 1Panel App Store app package.
 ```
 
-## 生成命令
+## Generate
 
-如果已经准备好中间 spec，可以直接运行脚本生成：
+If an intermediate spec is already prepared, run:
 
 ```bash
 python3 scripts/generate_app_package.py \
@@ -114,18 +116,18 @@ python3 scripts/generate_app_package.py \
   --output apps
 ```
 
-生成后会得到应用包目录：
+The generated package directory will be:
 
 ```text
 apps/<app-key>
 ```
 
-## 本地测试
+## Local Test
 
-把生成的应用目录放到：
+Place the generated app directory in:
 
 ```text
 /opt/1panel/resource/apps/local/<app-key>
 ```
 
-然后在 1Panel 应用商店中刷新本地应用列表，测试安装、启动、停止、重启和卸载。
+Then refresh the local app list in the 1Panel App Store, and test install, start, stop, restart, and uninstall.
