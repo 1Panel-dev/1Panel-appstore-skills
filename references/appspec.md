@@ -120,6 +120,12 @@ Use this JSON spec as the handoff between natural-language analysis and determin
 - `init_source_evidence`: required when `init_commands`, `init_permissions`, or `volume_permissions` generate an `init.sh`. List the official repository files or docs that justify the init actions.
 - `init_permissions`: optional list of persisted host paths that need ownership or mode changes before the container starts. Use only when official Docker evidence confirms the container writes as a non-root user.
 
+## Other Lifecycle Scripts
+
+Only `init.sh` has spec fields and generation support. There are no supported `upgrade_commands`, `uninstall_commands`, or start/stop/restart generation fields. Add required hooks manually under `<version>/scripts/` after generation, following [Lifecycle Scripts](appstore-format.md#lifecycle-scripts) for filenames, execution timing, source evidence, and validation.
+
+Record official evidence for manual hooks in their comments and `source_evidence`; use `notes` for assumptions or manual steps. Regeneration with `--force` preserves these scripts and helper files. Generated `init.sh` remains managed by the init fields; see the regeneration rules in the format reference.
+
 ## Service Fields
 
 - `name`: service key.

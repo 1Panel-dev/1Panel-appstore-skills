@@ -42,7 +42,7 @@ apps/<app-key>/
     data.yml
     docker-compose.yml
     data/
-    scripts/        # Optional: generate init.sh when persistent directory permissions need to be handled
+    scripts/        # Optional: generated init.sh and manually added lifecycle scripts
 ```
 
 Based on the input and official sources, it handles:
@@ -70,8 +70,11 @@ Core files:
 - `SKILL.md`: defines trigger scenarios, workflow, and packaging rules.
 - `assets/sample-appspec.json`: intermediate spec example, useful for understanding the generation flow.
 - `references/appstore-format.md`: 1Panel app package directory and field rules.
+- `references/appspec.md`: intermediate spec fields and generation boundaries.
+- `references/review-checklist.md`: package review and local testing checklist.
 - `references/source-policy.md`: source rules for application source code, official documentation, and Docker installation methods.
 - `scripts/generate_app_package.py`: generates a 1Panel app package from an intermediate spec.
+- `scripts/validate_app_package.py`: performs basic package checks.
 
 ## Source Requirements
 
@@ -85,7 +88,9 @@ When official sources do not provide a Docker installation method, reliable cont
 
 Prefer official container images. If no public official image is available, or if the official project only provides source-build instructions, a third-party image can be used only after the user explicitly accepts it, and the third-party image source must be recorded.
 
-If `init.sh` is generated, its content also needs official-source evidence. The most common use is handling persistent directory permissions. If official documentation clearly requires other pre-installation actions, those commands can also be included. When no initialization action is needed, the app package does not include a `scripts/` directory.
+If `init.sh` is generated, its content also needs official-source evidence. The most common use is handling persistent directory permissions. If official documentation clearly requires other pre-installation actions, those commands can also be included. Omit `scripts/` when no scripts or helper files are needed.
+
+The generator currently supports only `init.sh`. Add required `upgrade.sh` and `uninstall.sh` manually, with official evidence recorded in script comments and the spec. Start/stop/restart scripts require a verified caller that enables 1Panel's internal lifecycle-script mode; ordinary app operations do not automatically run them. See [Lifecycle Scripts](references/appstore-format.md#lifecycle-scripts) for version support, execution timing, and manual script requirements.
 
 ## Usage Examples
 
@@ -121,6 +126,16 @@ The generated package directory will be:
 ```text
 apps/<app-key>
 ```
+
+After adding any required manual scripts, run basic package checks:
+
+```bash
+python3 scripts/validate_app_package.py apps/<app-key>
+```
+
+The validator does not check shell syntax or runtime behavior. Run `bash -n` on each added script and test the relevant lifecycle operations in 1Panel.
+
+Use `--force` to regenerate an existing package. Other scripts and helper files are preserved; the init fields manage generated `init.sh`. If init actions are removed, only an `init.sh` with the generator's evidence marker is deleted, and `scripts/` is removed only when empty. See the format reference for details.
 
 ## Local Test
 

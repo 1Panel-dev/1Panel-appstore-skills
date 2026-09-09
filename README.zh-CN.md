@@ -42,7 +42,7 @@ apps/<app-key>/
     data.yml
     docker-compose.yml
     data/
-    scripts/        # 可选：需要处理持久化目录权限时生成 init.sh
+    scripts/        # 可选：生成的 init.sh 和人工补充的生命周期脚本
 ```
 
 其中会根据输入和官方来源处理：
@@ -70,8 +70,11 @@ apps/<app-key>/
 - `SKILL.md`：定义 Skill 的触发场景、工作流程和封装规则。
 - `assets/sample-appspec.json`：中间 spec 示例，可用于了解生成流程。
 - `references/appstore-format.md`：1Panel 应用包目录和字段规则。
+- `references/appspec.md`：中间 spec 字段及生成能力边界。
+- `references/review-checklist.md`：应用包审查和本地测试清单。
 - `references/source-policy.md`：应用源码、官方文档和 Docker 安装方式的来源规则。
 - `scripts/generate_app_package.py`：根据中间 spec 生成 1Panel 应用包。
+- `scripts/validate_app_package.py`：执行应用包基础检查。
 
 ## 信息来源要求
 
@@ -85,7 +88,9 @@ apps/<app-key>/
 
 优先使用官方容器镜像。官方没有公开可用镜像，或官方只提供源码构建方式时，可以在用户明确接受后使用第三方镜像，并记录第三方镜像来源。
 
-如果生成 `init.sh`，脚本内容也需要有官方来源依据。当前最常见用途是处理持久化目录权限；官方文档明确需要其他安装前处理时，也可以写入对应命令。没有初始化动作时，应用包中不包含 `scripts/` 目录。
+如果生成 `init.sh`，脚本内容也需要有官方来源依据。当前最常见用途是处理持久化目录权限；官方文档明确需要其他安装前处理时，也可以写入对应命令。没有任何脚本或辅助文件时，不创建 `scripts/` 目录。
+
+生成器目前只支持 `init.sh`。需要 `upgrade.sh`、`uninstall.sh` 时，请人工补充，并在脚本注释和 spec 中记录官方依据。启动、停止、重启脚本需要确认调用方已启用 1Panel 内部生命周期脚本模式，普通应用操作不会自动执行这些脚本。适用版本、执行时机和人工补充规范见[生命周期脚本说明](references/appstore-format.md#lifecycle-scripts)。
 
 ## 使用示例
 
@@ -121,6 +126,16 @@ python3 scripts/generate_app_package.py \
 ```text
 apps/<app-key>
 ```
+
+补齐所需的人工脚本后，执行应用包基础检查：
+
+```bash
+python3 scripts/validate_app_package.py apps/<app-key>
+```
+
+校验工具不检查 Shell 语法或实际运行行为。请对每个补充的脚本执行 `bash -n`，并在 1Panel 中测试相应生命周期操作。
+
+使用 `--force` 可以重新生成已有应用包。其他脚本和辅助文件会保留，生成的 `init.sh` 由初始化字段管理。删除初始化配置后，只清理带生成器来源标记的 `init.sh`，并且仅在 `scripts/` 为空时删除目录。详细规则见应用包格式说明。
 
 ## 本地测试
 

@@ -41,11 +41,15 @@ Use this before finalizing a generated app package.
 - Third-party images are used only when official sources confirm no usable public image or source-build-only installation, the user accepted the image, and the package records the third-party source.
 - Every version form field includes a full multilingual `label` map.
 
-## Init Script
+## Lifecycle Scripts
 
-- If no init action is needed, `<version>/scripts/` does not exist.
+- Required hooks match the target 1Panel version and calling workflow described in `appstore-format.md`.
+- `<version>/scripts/` is omitted when no scripts or helper files are needed; an app may need upgrade or uninstall scripts without an init script.
+- Manually added hooks use the documented filenames, Bash/LF format, executable permissions, and installation-relative paths; `bash -n` passes for each script.
+- Every lifecycle action has official application evidence in the spec and script comments. Migrations account for supported source versions; cleanup is limited to application-owned resources.
+- Start/stop/restart hooks have a verified caller that enables lifecycle-script mode. Ordinary parameter updates are not assumed to run `init.sh` or `restart.sh`.
+- Regeneration preserves manual scripts and helpers; changes to generated `init.sh` are recorded in the spec.
 - If a non-root container user needs write access to a persisted host directory, `<version>/scripts/init.sh` exists.
-- Every `init.sh` action is backed by official source evidence recorded in the spec or final response.
 - `init.sh` uses UID/GID values confirmed from official Dockerfile, Compose, or image docs.
 - `init.sh` fixes only package-relative persisted paths, for example `chown -R 1000:1000 data`.
 - Other `init.sh` commands are limited to official preflight requirements.
@@ -61,7 +65,9 @@ Use this before finalizing a generated app package.
 
 ## Local Test
 
+- Run `python3 scripts/validate_app_package.py apps/<app-key>` from the skill directory for basic package checks; this does not validate shell syntax or lifecycle behavior.
 - Copy the generated app folder to `/opt/1panel/resource/apps/local`.
 - Refresh local apps in 1Panel.
 - Install, start, stop, restart, uninstall, and reinstall.
+- When applicable, test upgrade from supported source versions and parameter changes, including the resulting files and container configuration.
 - Confirm exposed port, data persistence, logs, and health checks.

@@ -25,7 +25,7 @@ Package Dockerized applications into the 1Panel appstore/local-app format. Use o
    - `references/appspec.md` before writing the intermediate spec.
    - `references/review-checklist.md` before final handoff when you need a packaging checklist.
 4. Write an intermediate JSON spec, usually under `/tmp/<app-key>-1panel-appspec.json` or a task-specific output directory.
-5. Run `scripts/generate_app_package.py --spec <spec.json> --output <output-dir>` to create the package.
+5. Run `scripts/generate_app_package.py --spec <spec.json> --output <output-dir>` to create the package, then manually add any other required lifecycle scripts following `references/appstore-format.md`.
 6. Return the package path, generated version, source evidence, warnings, and local testing path.
 
 ## Source Rules
@@ -54,14 +54,21 @@ Package Dockerized applications into the 1Panel appstore/local-app format. Use o
 - Fill i18n maps for root `additionalProperties.description` and every version `data.yml` form field `label`. Use the appstore language set `en`, `es-es`, `ja`, `ms`, `pt-br`, `ru`, `ko`, `zh-Hant`, `zh`, and `tr`.
 - Reuse translations already present in existing apps for common labels such as Port, HTTP Port, Web UI Port, Password, API Key, Token, Model, Provider, and Base URL. Do not invent specialized translations when no reliable source or existing pattern exists; prefer a clear English fallback and call out the assumption.
 
-## init.sh Rules
+## Lifecycle Scripts
+
+- Check the target 1Panel version and caller before choosing a hook; see `references/appstore-format.md` for filenames, execution semantics, and manual script requirements.
+- The generator supports only `init.sh`. Add `upgrade.sh` when official application upgrade requirements need package-side migration or configuration changes, and `uninstall.sh` when application-owned resources need cleanup beyond 1Panel's normal removal. Record official evidence for each action in script comments and the spec's `source_evidence`.
+- `start.sh`, `stop.sh`, and `restart.sh` require a caller that enables the internal lifecycle-script mode. Ordinary app operations do not automatically execute these files.
+- Parameter updates do not rerun `init.sh`. Keep installation initialization there; actions that must follow parameter changes need a verified update path.
+
+### init.sh Rules
 
 - For every persistent relative volume, check whether the container runs as a non-root built-in user. Use official `Dockerfile` `USER`, official Compose `user:`, image docs, or installation docs as evidence. If the mounted directory must be writable by a non-root UID/GID, add an `init_permissions` or service `volume_permissions` entry so `scripts/init.sh` fixes ownership before startup.
 - `init.sh` content must be based on official application sources. Use `init_source_evidence` to record the official file or documentation that supports every generated init action.
 - Besides persistent directory permissions, add other `init_commands` only when official install docs require a host-side preflight step. Keep the script minimal.
 - Do not guess UID/GID values. If the official source does not reveal the runtime user and the app is known to fail on host-mounted volumes, stop and ask the user for the intended UID/GID or official container docs.
 - Let the package tree create persistent directories with `.gitkeep`; use `init.sh` to change permissions, not as the primary way to create expected directories.
-- If no init action is needed, do not generate `scripts/` or `scripts/init.sh`.
+- If no init action is needed, do not generate `scripts/init.sh`. Keep `scripts/` when other required scripts or helper files exist; omit it when empty.
 
 ## Scripts
 

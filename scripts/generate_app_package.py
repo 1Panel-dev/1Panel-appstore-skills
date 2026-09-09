@@ -19,6 +19,7 @@ VAR_RE = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)(?::-[^}]*)?\}")
 SECRET_RE = re.compile(r"(PASSWORD|SECRET|TOKEN|KEY|SALT)", re.I)
 OWNER_RE = re.compile(r"^[0-9]+:[0-9]+$")
 MODE_RE = re.compile(r"^[0-7]{3,4}$")
+INIT_SCRIPT_MARKER = "# Generated from official installation evidence:"
 BUILTIN_VARS = {"CONTAINER_NAME", "HOST_IP", "HOST_ADDRESS", "PANEL_DB_PORT"}
 LANG_KEYS = ["en", "es-es", "ja", "ms", "pt-br", "ru", "ko", "zh-Hant", "zh", "tr"]
 I18N_LABELS = {
@@ -391,9 +392,19 @@ def write_init_script(version_dir: Path, spec: dict[str, Any], services: list[di
     commands = [str(item).rstrip() for item in spec.get("init_commands") or []]
     fixes = collect_permission_fixes(spec, services)
     scripts_dir = version_dir / "scripts"
+    init_path = scripts_dir / "init.sh"
     if not commands and not fixes:
-        if scripts_dir.exists():
-            shutil.rmtree(scripts_dir)
+        if scripts_dir.is_symlink():
+            return
+        # Remove only an obsolete generated init script; preserve manual scripts and helpers.
+        if (
+            not init_path.is_symlink()
+            and init_path.is_file()
+            and INIT_SCRIPT_MARKER.encode("ascii") in init_path.read_bytes().splitlines()
+        ):
+            init_path.unlink()
+        if scripts_dir.is_dir() and not any(scripts_dir.iterdir()):
+            scripts_dir.rmdir()
         return
     evidence = [str(item).strip() for item in spec.get("init_source_evidence") or [] if str(item).strip()]
     if not evidence:
@@ -402,7 +413,7 @@ def write_init_script(version_dir: Path, spec: dict[str, Any], services: list[di
     lines = [
         "#!/bin/bash",
         "",
-        "# Generated from official installation evidence:",
+        INIT_SCRIPT_MARKER,
         *[f"# - {item}" for item in evidence],
         "",
     ]
@@ -417,7 +428,6 @@ def write_init_script(version_dir: Path, spec: dict[str, Any], services: list[di
         if "mode" in fix:
             lines.append(f"    chmod -R {shlex.quote(fix['mode'])} {path}")
         lines.extend(["fi", ""])
-    init_path = scripts_dir / "init.sh"
     init_path.write_text("\n".join(lines), encoding="utf-8")
     init_path.chmod(0o755)
 

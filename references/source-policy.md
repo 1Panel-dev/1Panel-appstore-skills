@@ -29,7 +29,7 @@ Use this before packaging an app from an application name or repository URL.
    - UID/GID notes in official image or deployment docs
    - startup errors or permission notes documented by the project
 10. If a persisted host mount must be writable by a non-root container user, record the UID/GID and generate `scripts/init.sh` through `init_permissions` or `volume_permissions`.
-11. If any other `init.sh` action is needed, use only project-owned repository files or official docs as evidence and record it in `init_source_evidence`.
+11. For lifecycle script actions, use project-owned repository files or official docs as evidence. Record generated init actions in `init_source_evidence`; record manually added hooks in script comments and `source_evidence`. Check official upgrade and removal requirements before adding migrations or cleanup.
 12. Use the official repository README, official website, or official docs for `README.md` and `README_en.md` content. Keep the generated copy factual and concise.
 13. Prefer official container images. Use a third-party image only when:
    - the official project has no public image or only documents source builds
@@ -47,6 +47,7 @@ The Docker installation method must be supported by at least one of:
 - Official release/package documentation from the project owner.
 - Official Dockerfile, Compose, or image docs that define the runtime user for persistent volume ownership.
 - Official docs that require host-side preflight actions before container startup.
+- Official upgrade or removal docs that justify lifecycle script actions.
 - Official README, website, or docs that describe the application and its user-facing features.
 - A user-approved third-party image page or linked source repository, but only after official image absence or source-build-only status has been confirmed from official sources.
 
@@ -64,7 +65,7 @@ Do not use these as authoritative sources:
 - mirrors that are not linked by the project
 - guessed ports, volumes, env vars, or image names
 - guessed UID/GID values for mounted directory ownership
-- guessed init scripts or third-party shell snippets
+- guessed lifecycle scripts or third-party shell snippets
 - marketing copy, feature lists, or translations invented without source support
 
 ## Stop Conditions
