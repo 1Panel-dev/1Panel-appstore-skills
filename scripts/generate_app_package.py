@@ -463,6 +463,7 @@ def build_form_fields(spec: dict[str, Any], services: list[dict[str, Any]]) -> l
 def root_data(spec: dict[str, Any], key: str, name: str) -> dict[str, Any]:
     desc_en, desc_zh = as_description(spec.get("description"), name)
     tags = spec.get("tags") or ["Tool"]
+    display_tags = ["实用工具" if tag == "Tool" else tag for tag in tags]
     props: dict[str, Any] = {
         "key": key,
         "name": name,
@@ -478,7 +479,7 @@ def root_data(spec: dict[str, Any], key: str, name: str) -> dict[str, Any]:
     for field in ("recommend", "website", "github", "document", "memoryRequired"):
         if field in spec and spec[field] not in (None, ""):
             props[field] = spec[field]
-    return {"name": name, "tags": tags, "title": spec.get("title") or name, "description": desc_zh, "additionalProperties": props}
+    return {"name": name, "tags": display_tags, "title": spec.get("title") or name, "description": desc_zh, "additionalProperties": props}
 
 
 def readme_profile(spec: dict[str, Any], lang: str, name: str) -> tuple[str, list[dict[str, str]]]:
