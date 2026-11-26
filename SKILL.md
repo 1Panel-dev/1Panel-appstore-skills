@@ -39,6 +39,7 @@ Package Dockerized applications into the 1Panel appstore/local-app format. Use o
 
 ## Package Rules
 
+- For the `Tool` category, write `实用工具` in the top-level `tags` of the app’s root `data.yml` and `Tool` in `additionalProperties.tags`.
 - Prefer a single primary service when possible. For secondary services, use explicit names and make sure every service joins `1panel-network`.
 - Use `${CONTAINER_NAME}` for the primary service container name. Use `${CONTAINER_NAME}-<service>` for secondary service container names.
 - Use `PANEL_APP_PORT_HTTP` for the primary web port. Use `PANEL_APP_PORT_<PURPOSE>` for additional ports.
